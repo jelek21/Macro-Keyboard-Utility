@@ -72,23 +72,25 @@ class Root(tk.Tk):
         self.notebook = Notebook(self)
 
         main_tab = tk.Frame(self.notebook)
-        main_tab_bottom = tk.Frame(main_tab)
-        main_tab_bottom.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        main_tab_bottom = tk.Frame(main_tab, height=10)
+        main_tab_bottom.pack(side=tk.BOTTOM, fill=tk.Y, expand=True)
+        main_tab_output = tk.Frame(main_tab, height=20)
+        main_tab_output.pack(side=tk.BOTTOM, fill=tk.Y,expand=True)
 
         macro_tab = tk.Frame(self.notebook)
 
         self.find_kbd_bt = tk.Button(main_tab_bottom, text="Find keyboards", command=self.find_kbds)
-        self.find_kbd_bt.pack(in_=main_tab_bottom, side=tk.LEFT)
+        self.find_kbd_bt.pack(in_=main_tab_bottom, side=tk.TOP, pady=5)
 
         self.select_kbd_bt = tk.Button(main_tab_bottom, text="Select keyboard", command=self.select_kbd, state="disabled")
-        self.select_kbd_bt.pack(in_=main_tab_bottom, side=tk.RIGHT)
+        self.select_kbd_bt.pack(in_=main_tab_bottom, side=tk.TOP, pady=10)
 
         self.main_text = tk.StringVar(main_tab)
         self.main_text.set("")
 
-        self.kbd_listbox = tk.Listbox(main_tab, selectmode=tk.SINGLE)
+        self.kbd_listbox = tk.Listbox(main_tab, selectmode=tk.SINGLE, height=25)
         self.kbd_listbox.configure(exportselection=False)
-        self.kbd_listbox.pack(expand=True)
+        self.kbd_listbox.pack(fill=tk.BOTH, expand=True)
         self.kbd_listbox.bind("<<ListboxSelect>>", self.select_kbd_bt.config(state="active"))
 
         self.notebook.add(main_tab, text="Keyboard selection")
@@ -126,12 +128,10 @@ class Root(tk.Tk):
         Function called by the select button, registers which keyboard has been selected.
         Result is stored in macro_kbd
         """
-        macro_kbd = InputDevice(kbd_list[self.kbd_listbox.curselection()][1])
+        macro_kbd = InputDevice(kbd_list[self.kbd_listbox.curselection()[0]][1])
         if __debug__:
             print('Selected ', macro_kbd.name)
-
-
-
+        self.notebook.select(macro_tab)
 
 root = Root()
 root.mainloop()
