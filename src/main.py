@@ -4,8 +4,8 @@ import tkinter as tk
 from tkinter.ttk import *
 from evdev import *
 
-ERROR="Error"
-WARNING="Warn"
+ERR="Error"
+WARN="Warn"
 INFO="Information"
 
 
@@ -54,7 +54,7 @@ def _show_popup_(type, msg):
     label.pack(side="top", fill="x", pady=10)
 
     if type == ERR:
-        B1 = tk.Button(popup, text="Quit", command = _exit_(ERROR))
+        B1 = tk.Button(popup, text="Quit", command = _exit_(ERR))
     else:
         B1 = tk.Button(popup, text="Okay", command = popup.destroy)
     B1.pack()
