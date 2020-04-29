@@ -1,12 +1,14 @@
 import os
 import evdev
 import tkinter as tk
-from tkinter.ttk import Notebook
+from tkinter.ttk import *
 from evdev import *
 
 ERROR="Error"
 WARNING="Warn"
 INFO="Information"
+
+
 
 ## TODO: Create log file in /tmp + message inviting user to post logs on Github
 def _exit_(type):
@@ -48,13 +50,13 @@ def _show_popup_(type, msg):
     else:
         popup.wm_title("Warning!")
 
-    label = ttk.Label(popup, text=msg)
+    label = tk.Label(popup, text=msg)
     label.pack(side="top", fill="x", pady=10)
 
     if type == ERR:
-        B1 = ttk.Button(popup, text="Quit", command = _exit_(ERROR))
+        B1 = tk.Button(popup, text="Quit", command = _exit_(ERROR))
     else:
-        B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
+        B1 = tk.Button(popup, text="Okay", command = popup.destroy)
     B1.pack()
     popup.mainloop()
 
@@ -71,30 +73,50 @@ class Root(tk.Tk):
 
         self.notebook = Notebook(self)
 
-        main_tab = tk.Frame(self.notebook)
-        main_tab_bottom = tk.Frame(main_tab, height=10)
-        main_tab_bottom.pack(side=tk.BOTTOM, fill=tk.Y, expand=True)
-        main_tab_output = tk.Frame(main_tab, height=20)
-        main_tab_output.pack(side=tk.BOTTOM, fill=tk.Y,expand=True)
+        self.main_tab = tk.Frame(self.notebook)
+        self.main_tab_bottom = tk.Frame(self.main_tab, height=10)
+        self.main_tab_bottom.pack(side=tk.BOTTOM, fill=tk.Y, expand=True)
+        self.main_tab_output = tk.Frame(self.main_tab, height=20)
+        self.main_tab_output.pack(side=tk.BOTTOM, fill=tk.Y,expand=True)
 
-        macro_tab = tk.Frame(self.notebook)
+        self.find_kbd_bt = tk.Button(self.main_tab_bottom, text="Find keyboards", command=self.find_kbds)
+        self.find_kbd_bt.pack(in_=self.main_tab_bottom, side=tk.TOP, pady=5)
+        
+        self.select_kbd_bt = tk.Button(self.main_tab_bottom, text="Select keyboard", command=self.select_kbd, state="disabled")
+        self.select_kbd_bt.pack(in_=self.main_tab_bottom, side=tk.TOP, pady=10)
 
-        self.find_kbd_bt = tk.Button(main_tab_bottom, text="Find keyboards", command=self.find_kbds)
-        self.find_kbd_bt.pack(in_=main_tab_bottom, side=tk.TOP, pady=5)
-
-        self.select_kbd_bt = tk.Button(main_tab_bottom, text="Select keyboard", command=self.select_kbd, state="disabled")
-        self.select_kbd_bt.pack(in_=main_tab_bottom, side=tk.TOP, pady=10)
-
-        self.main_text = tk.StringVar(main_tab)
-        self.main_text.set("")
-
-        self.kbd_listbox = tk.Listbox(main_tab, selectmode=tk.SINGLE, height=25)
+        self.kbd_listbox = tk.Listbox(self.main_tab, selectmode=tk.SINGLE, height=25)
         self.kbd_listbox.configure(exportselection=False)
         self.kbd_listbox.pack(fill=tk.BOTH, expand=True)
         self.kbd_listbox.bind("<<ListboxSelect>>", self.select_kbd_bt.config(state="active"))
+        
+        self.macro_tab = tk.Frame(self.notebook)
+        self.macro_tab_menubar = tk.Frame(self.macro_tab, height=25)
+        self.macro_tab_menubar.pack(fill=tk.X)
+        # Icons by Icongeek26 : https://www.flaticon.com/authors/icongeek26
+        self.img_create = tk.PhotoImage(file="file.png")
+        self.img_mod = tk.PhotoImage(file="edit-file.png")
+        self.img_del = tk.PhotoImage(file="remove.png")
 
-        self.notebook.add(main_tab, text="Keyboard selection")
-        self.notebook.add(macro_tab, text="Macro definition")
+        self.new_macro = tk.Button(self.macro_tab_menubar, text="New macro", command=self.create_new_macro, image=self.img_create)
+        self.new_macro.pack(side=tk.LEFT)
+
+        self.del_macro = tk.Button(self.macro_tab_menubar, text="Delete macro", command=self.delete_macro, image=self.img_del)
+        self.del_macro.pack(side=tk.LEFT)
+
+        self.mod_macro = tk.Button(self.macro_tab_menubar, text="Modify macro", command=self.modify_macro, image=self.img_mod)
+        self.mod_macro.pack(side=tk.LEFT)
+
+        self.macros_table = Treeview(self.macro_tab,show="headings")
+        self.macros_table["columns"]=("keys", "commands")
+        self.macros_table.heading("keys",text="Macro keys")
+        self.macros_table.heading("commands",text="Macro commands")
+        self.macros_table.pack(fill=tk.BOTH,expand=True)
+
+
+
+        self.notebook.add(self.main_tab, text="Keyboard selection")
+        self.notebook.add(self.macro_tab, text="Macro definition")
 
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
@@ -131,7 +153,15 @@ class Root(tk.Tk):
         macro_kbd = InputDevice(kbd_list[self.kbd_listbox.curselection()[0]][1])
         if __debug__:
             print('Selected ', macro_kbd.name)
-        self.notebook.select(macro_tab)
+    
+    def create_new_macro(self):
+        print("Clicked on create new macro")
+
+    def delete_macro(self):
+        print("Clicked on delete new macro")
+
+    def modify_macro(self):
+        print("Clicked on modify new macro")
 
 root = Root()
 root.mainloop()
