@@ -71,43 +71,54 @@ class Root(tk.Tk):
         self.title("Generic Macro Keyboard Utility")
         self.geometry("500x500")
 
-        self.notebook = Notebook(self)
+        self.notebook = tk.ttk.Notebook(self)
 
         self.main_tab = tk.Frame(self.notebook)
-        self.main_tab_bottom = tk.Frame(self.main_tab, height=10)
+        self.main_tab_bottom = tk.Frame(self.main_tab)
         self.main_tab_bottom.pack(side=tk.BOTTOM, fill=tk.Y, expand=True)
-        self.main_tab_output = tk.Frame(self.main_tab, height=20)
-        self.main_tab_output.pack(side=tk.BOTTOM, fill=tk.Y,expand=True)
 
+        self.kbd_listbox = tk.Listbox(self.main_tab, selectmode=tk.SINGLE, height=200, exportselection=False)
+        self.kbd_listbox.pack(fill=tk.BOTH, expand=True)
+        
         self.find_kbd_bt = tk.Button(self.main_tab_bottom, text="Find keyboards", command=self.find_kbds)
         self.find_kbd_bt.pack(in_=self.main_tab_bottom, side=tk.TOP, pady=5)
         
-        self.select_kbd_bt = tk.Button(self.main_tab_bottom, text="Select keyboard", command=self.select_kbd, state="disabled")
+        self.select_kbd_bt = tk.Button(self.main_tab_bottom, text="Select keyboard", command=self.select_kbd)
         self.select_kbd_bt.pack(in_=self.main_tab_bottom, side=tk.TOP, pady=10)
-
-        self.kbd_listbox = tk.Listbox(self.main_tab, selectmode=tk.SINGLE, height=25)
-        self.kbd_listbox.configure(exportselection=False)
-        self.kbd_listbox.pack(fill=tk.BOTH, expand=True)
         self.kbd_listbox.bind("<<ListboxSelect>>", self.select_kbd_bt.config(state="active"))
+
+        self.main_tab_output = tk.Frame(self.main_tab, height=20)
+        self.main_tab_output.pack(side=tk.BOTTOM, fill=tk.X)
+        
+        self.main_output = Label(self.main_tab_bottom, anchor=tk.W, justify=tk.LEFT)
+        self.main_output.pack()
+
         
         self.macro_tab = tk.Frame(self.notebook)
         self.macro_tab_menubar = tk.Frame(self.macro_tab, height=25)
         self.macro_tab_menubar.pack(fill=tk.X)
+
+        self.macro_tab_bottom = tk.Frame(self.macro_tab, height = 1)
+        self.macro_tab_bottom.pack(side=tk.BOTTOM, fill=tk.Y, expand=True)
+
+        self.macro_output = Label(self.macro_tab_bottom, anchor=tk.SW)
+        self.macro_output.pack()
+
         # Icons by Icongeek26 : https://www.flaticon.com/authors/icongeek26
-        self.img_create = tk.PhotoImage(file="file.png")
-        self.img_mod = tk.PhotoImage(file="edit-file.png")
-        self.img_del = tk.PhotoImage(file="remove.png")
+        self.img_create = tk.PhotoImage(file="../resources/img/file.png")
+        self.img_mod = tk.PhotoImage(file="../resources/img/edit-file.png")
+        self.img_del = tk.PhotoImage(file="../resources/img/remove.png")
 
-        self.new_macro = tk.Button(self.macro_tab_menubar, text="New macro", command=self.create_new_macro, image=self.img_create)
-        self.new_macro.pack(side=tk.LEFT)
+        self.new_macro_bt = tk.Button(self.macro_tab_menubar, text="New macro", command=self.create_new_macro, image=self.img_create)
+        self.new_macro_bt.pack(side=tk.LEFT)
 
-        self.del_macro = tk.Button(self.macro_tab_menubar, text="Delete macro", command=self.delete_macro, image=self.img_del)
-        self.del_macro.pack(side=tk.LEFT)
+        self.del_macro_bt = tk.Button(self.macro_tab_menubar, text="Delete macro", command=self.delete_macro, image=self.img_del)
+        self.del_macro_bt.pack(side=tk.LEFT)
 
-        self.mod_macro = tk.Button(self.macro_tab_menubar, text="Modify macro", command=self.modify_macro, image=self.img_mod)
-        self.mod_macro.pack(side=tk.LEFT)
+        self.mod_macro_bt = tk.Button(self.macro_tab_menubar, text="Modify macro", command=self.modify_macro, image=self.img_mod)
+        self.mod_macro_bt.pack(side=tk.LEFT)
 
-        self.macros_table = Treeview(self.macro_tab,show="headings")
+        self.macros_table = Treeview(self.macro_tab,show="headings", height=200)
         self.macros_table["columns"]=("keys", "commands")
         self.macros_table.heading("keys",text="Macro keys")
         self.macros_table.heading("commands",text="Macro commands")
@@ -139,8 +150,11 @@ class Root(tk.Tk):
             elif evdev.ecodes.KEY_CAPSLOCK in capskey:
                 if evdev.ecodes.BTN_RIGHT not in capskey:
                     kbd_list.append((dev.name,dev.fn))
+
+        output="Found "+ str(len(kbd_list))+ " keyboards"
+        self.msg(output)
         if __debug__:
-            print('Found ', len(kbd_list), ' keyboards')
+            print(self,output)
         self.kbd_listbox.delete(0, tk.END)
         for i in range(len(kbd_list)):
             self.kbd_listbox.insert(i, kbd_list[i][0])
@@ -150,7 +164,17 @@ class Root(tk.Tk):
         Function called by the select button, registers which keyboard has been selected.
         Result is stored in macro_kbd
         """
+        if len(self.kbd_listbox.curselection()) < 1:
+            self.msg('Please start by pressing \"Find keyboards\" button')
+            if __debug__: print("Keyboard list empty")
+            return
+        
         macro_kbd = InputDevice(kbd_list[self.kbd_listbox.curselection()[0]][1])
+        
+        if not macro_kbd:
+            self.msg("Please select a keyboard first")
+            if __debug__: print("No keyboard selected")
+        
         if __debug__:
             print('Selected ', macro_kbd.name)
     
@@ -162,6 +186,10 @@ class Root(tk.Tk):
 
     def modify_macro(self):
         print("Clicked on modify new macro")
+
+    def msg(self,text):
+        self.macro_output["text"]=text
+        self.main_output["text"]=text
 
 root = Root()
 root.mainloop()
